@@ -1,0 +1,37 @@
+{
+  "$schema": "https://cdn.statically.io/gh/nguyenngoclongdev/cdn/main/schema/v7/terminal-keeper.json",
+  "theme": "tribe",
+  "active": "default",
+  "activateOnStartup": true,
+  "keepExistingTerminals": false,
+  "noClear": true,
+  "sessions": {
+    "default": [
+      [
+        {
+          "name": "Main",
+          "icon": "notebook-execute",
+          "autoExecuteCommands": true,
+          "commands": [
+            "cd src/",
+            "npm run start-dev"
+          ]
+        },
+        {
+          "name": "Git",
+          "icon": "github",
+          "commands": [
+            ""
+          ]
+        }
+      ],
+      {
+        "name": "Others",
+        "icon": "debug-line-by-line",
+        "commands": [
+          ""
+        ]
+      }
+    ]
+  }
+}
