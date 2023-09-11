@@ -13,7 +13,7 @@ module.exports = {
             })
 
             if (!user) {
-                return res.status(401).json({ valid: false });
+                return res.status(401).json({ token: 'invalid' });
 
             }
 
