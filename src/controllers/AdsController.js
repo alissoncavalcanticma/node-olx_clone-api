@@ -33,7 +33,10 @@ module.exports = {
     addAction: async(req, res) => {
         let { title, price, priceneg, desc, cat, token } = req.body;
 
-        const user = User.findOne({ token });
+        //console.log(token)
+        const user = await User.findOne({ token });
+        //console.log(user._id)
+
 
         if (!title || !cat) {
             res.status(400).json({ error: 'Títulos e/ou Categoria não preenchida!' });
@@ -50,7 +53,6 @@ module.exports = {
 
         const newAd = new Ad();
         newAd.status = true;
-        console.log(user.state);
         newAd.idUser = user._id;
         newAd.state = user.state;
         newAd.dateCreated = new Date();
@@ -156,9 +158,90 @@ module.exports = {
         return;
     },
     getItem: async(req, res) => {
-        return true;
+        let { id, other = null } = req.query;
+        if (!id) {
+            res.status(400).json({ erro: "Produto não encontrado!" });
+            return;
+        }
+
+        //console.log(id);
+
+        if (id.length < 12) {
+            res.json({ erro: "Id de produto inválido!!" });
+            return;
+        }
+
+        const ad = await Ad.findById(id);
+        if (!ad) {
+            res.status(400).json({ erro: "Produto não encontrado!" });
+            return;
+        }
+
+        ad.views++;
+        await ad.save();
+
+        let images = [];
+        for (let i in ad.images) {
+            images.push(`${process.env.BASE}/media/${ad.images[i].url}`);
+        }
+
+        console.log({ idUsuario: ad.idUser });
+
+        let category = await Category.findById(ad.category).exec();
+        let userInfo = await User.findById(ad.idUser).exec();
+        let stateInfo = await StateModel.findById(ad.state).exec();
+
+        //console.log({ ad, userInfo });
+
+        let others = [];
+        if (other) {
+            const otherData = await Ad.find({ idUser: ad.idUser, status: true }).exec();
+
+            for (let i in otherData) {
+                if (otherData[i]._id.toString() != ad._id.toString()) {
+
+                    let image = `${process.env.BASE}/media/default.jpg`;
+
+                    let defaultImg = otherData[i].images.find(e => e.default);
+                    if (defaultImg) {
+                        image = `${process.env.BASE}/media/${defaultImg.url}`
+                    }
+
+                    others.push({
+                        id: otherData[i]._id,
+                        title: otherData[i].title,
+                        price: otherData[i].price,
+                        priceNegotiable: otherData[i].priceNegotiable,
+                        image
+                    });
+                }
+            }
+        }
+
+        res.json({
+            id: ad._id,
+            title: ad.title,
+            price: ad.price,
+            priceNegotiable: ad.priceNegotiable,
+            description: ad.description,
+            dateCreated: ad.dateCreated,
+            views: ad.views,
+            images,
+            category,
+            userInfo: {
+                name: userInfo.name1,
+                email: userInfo.email
+            },
+            stateName: stateInfo.name,
+            others
+
+        });
+
+        return;
     },
     editAction: async(req, res) => {
-        return true;
+
+
+        return;
     }
 };
