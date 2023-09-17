@@ -43,6 +43,18 @@ module.exports = {
             return;
         }
 
+        if (cat.length < 12) {
+            res.json({ error: 'Categoria inexistente!' });
+            return;
+        }
+
+        const category = await Category.findById(cat).exec();
+        if (!category) {
+            res.json({ error: 'Categoria inexistente!' });
+            return;
+        }
+
+
         if (price) {
             price = price.replace('.', '').replace(',', '.').replace('R$ ', '');
             price = parseFloat(price);
@@ -240,7 +252,68 @@ module.exports = {
         return;
     },
     editAction: async(req, res) => {
+        let { id } = req.params;
+        let { title, status, price, priceneg, desc, cat, images, token } = req.body;
 
+        if (id.length < 12) {
+            res.json({ error: 'ID inválido!' });
+            return;
+        }
+
+        const ad = await Ad.findById(id).exec();
+
+        if (!ad) {
+            res.json({ error: 'Anúncio inexistente!' });
+            return;
+        }
+
+        const user = await User.findOne({ token }).exec();
+        if (user._id.toString() != ad.idUser) {
+            res.json({ error: 'Este anúncio não é seu!' });
+            return;
+        }
+
+        let updates = {};
+
+        //verificação dos campos enviados
+        if (title) {
+            updates.title = title;
+        }
+        if (price) {
+            price = price.replace('.', '').replace(',', '.').replace('R$ ', '');
+            price = parseFloat(price);
+            updates.price = price;
+        }
+        if (priceneg) {
+            updates.priceneg = priceneg;
+        }
+        if (priceneg) {
+            updates.priceNegotiable = priceneg;
+        }
+        if (status) {
+            updates.status = status;
+        }
+        if (desc) {
+            updates.descriptioon = desc;
+        }
+        if (cat) {
+            const category = await Category.findOne({ slug: cat }).exec();
+
+            if (!category) {
+                res.json({ error: 'Categoria inexistente!' });
+                return;
+            }
+            updates.category = category._id.toString();
+        }
+        if (images) {
+            updates.iamges = images;
+        }
+
+        await Ad.findByIdAndUpdate(id, { $set: updates });
+
+        //
+
+        res.json('Alteração concluída com sucesso');
 
         return;
     }
